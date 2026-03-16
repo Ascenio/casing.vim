@@ -1,11 +1,26 @@
 nnoremap <silent> <Plug>(CasingToSnakeCase) :set operatorfunc=SnakeCaseOperator<CR>g@
+nnoremap <silent> <Plug>(CasingToPascalCase) :set operatorfunc=PascalCaseOperator<CR>g@
 
 function! SnakeCaseOperator(type)
   let l:state = s:push_state()
   call s:select_region(a:type)
+  call s:snake_case_transformer()
+  call s:pop_state(l:state)
+endfunction
+
+function! s:snake_case_transformer()
   keepjumps '<,'>s/\v%V(\l)(\u)/\1_\2/ge  " HttpRequest -> Http_Request
   keepjumps '<,'>s/\v%V(\u+)(\u\l)/\1_\2/ge " HTTPRequest -> HTTP_Request
   execute "normal! `<gu`>"
+endfunction
+
+function! PascalCaseOperator(type)
+  let l:state = s:push_state()
+  call s:select_region(a:type)
+  call s:snake_case_transformer()
+  keepjumps '<,'>s/\v%V\w+_/\u\0/ge  " http_request -> Http_request
+  keepjumps '<,'>s/\v%V_\l/\U\0/ge  " Http_request -> Http_Request
+  keepjumps '<,'>s/\v%V_//ge  " Http_Request -> HttpRequest
   call s:pop_state(l:state)
 endfunction
 
